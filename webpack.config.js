@@ -8,15 +8,15 @@
 // @babel/preset-env, babel-loader, sass, sass-loader, css-loader, style-loader, file-loader
 var path = require("path");
 var webpack = require("webpack");
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var CopyWebpackPlugin = require('copy-webpack-plugin');
+var HtmlWebpackPlugin = require("html-webpack-plugin");
+var CopyWebpackPlugin = require("copy-webpack-plugin");
 var MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 var CONFIG = {
     // The tags to include the generated JS and CSS will be automatically injected in the HTML template
     // See https://github.com/jantimon/html-webpack-plugin
     indexHtmlTemplate: "./src/index.html",
-    fsharpEntry: "./src/fsharp_minesweeper.fsproj",
+    fsharpEntry: "./src/fsharp-minesweeper.fsproj",
     cssEntry: "./sass/main.sass",
     outputDir: "./deploy",
     assetsDir: "./public",
@@ -28,26 +28,33 @@ var CONFIG = {
     // More info at https://babeljs.io/docs/en/next/babel-preset-env.html
     babel: {
         presets: [
-            ["@babel/preset-env", {
-                "targets": "> 0.25%, not dead",
-                "modules": false,
-                // This adds polyfills when needed. Requires core-js dependency.
-                // See https://babeljs.io/docs/en/babel-preset-env#usebuiltins
-                "useBuiltIns": "usage",
-            }]
-        ],
+            [
+                "@babel/preset-env",
+                {
+                    targets: "> 0.25%, not dead",
+                    modules: false,
+                    // This adds polyfills when needed. Requires core-js dependency.
+                    // See https://babeljs.io/docs/en/babel-preset-env#usebuiltins
+                    useBuiltIns: "usage"
+                }
+            ]
+        ]
     }
-}
+};
 
 // If we're running the webpack-dev-server, assume we're in development mode
-var isProduction = !process.argv.find(v => v.indexOf('webpack-dev-server') !== -1);
-console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
+var isProduction = !process.argv.find(
+    v => v.indexOf("webpack-dev-server") !== -1
+);
+console.log(
+    "Bundling for " + (isProduction ? "production" : "development") + "..."
+);
 
 // The HtmlWebpackPlugin allows us to use a template for the index.html page
 // and automatically injects <script> or <link> tags for generated bundles.
 var commonPlugins = [
     new HtmlWebpackPlugin({
-        filename: 'index.html',
+        filename: "index.html",
         template: resolve(CONFIG.indexHtmlTemplate)
     })
 ];
@@ -55,17 +62,19 @@ var commonPlugins = [
 module.exports = {
     // In development, bundle styles together with the code so they can also
     // trigger hot reloads. In production, put them in a separate CSS file.
-    entry: isProduction ? {
-        app: [resolve(CONFIG.fsharpEntry), resolve(CONFIG.cssEntry)]
-    } : {
-            app: [resolve(CONFIG.fsharpEntry)],
-            style: [resolve(CONFIG.cssEntry)]
-        },
+    entry: isProduction
+        ? {
+              app: [resolve(CONFIG.fsharpEntry), resolve(CONFIG.cssEntry)]
+          }
+        : {
+              app: [resolve(CONFIG.fsharpEntry)],
+              style: [resolve(CONFIG.cssEntry)]
+          },
     // Add a hash to the output file name in production
     // to prevent browser caching if code changes
     output: {
         path: resolve(CONFIG.outputDir),
-        filename: isProduction ? '[name].[hash].js' : '[name].js'
+        filename: isProduction ? "[name].[hash].js" : "[name].js"
     },
     mode: isProduction ? "production" : "development",
     devtool: isProduction ? "source-map" : "eval-source-map",
@@ -80,7 +89,7 @@ module.exports = {
                     chunks: "all"
                 }
             }
-        },
+        }
     },
     // Besides the HtmlPlugin, we use the following plugins:
     // PRODUCTION
@@ -89,14 +98,12 @@ module.exports = {
     //      - CopyWebpackPlugin: Copies static assets to output directory
     // DEVELOPMENT
     //      - HotModuleReplacementPlugin: Enables hot reloading when code changes without refreshing
-    plugins: isProduction ?
-        commonPlugins.concat([
-            new MiniCssExtractPlugin({ filename: 'style.css' }),
-            new CopyWebpackPlugin([{ from: resolve(CONFIG.assetsDir) }]),
-        ])
-        : commonPlugins.concat([
-            new webpack.HotModuleReplacementPlugin(),
-        ]),
+    plugins: isProduction
+        ? commonPlugins.concat([
+              new MiniCssExtractPlugin({ filename: "style.css" }),
+              new CopyWebpackPlugin([{ from: resolve(CONFIG.assetsDir) }])
+          ])
+        : commonPlugins.concat([new webpack.HotModuleReplacementPlugin()]),
     resolve: {
         // See https://github.com/fable-compiler/Fable/issues/1490
         symlinks: false
@@ -129,22 +136,20 @@ module.exports = {
                 test: /\.js$/,
                 exclude: /node_modules/,
                 use: {
-                    loader: 'babel-loader',
+                    loader: "babel-loader",
                     options: CONFIG.babel
-                },
+                }
             },
             {
                 test: /\.(sass|scss|css)$/,
                 use: [
-                    isProduction
-                        ? MiniCssExtractPlugin.loader
-                        : 'style-loader',
-                    'css-loader',
+                    isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+                    "css-loader",
                     {
-                      loader: 'sass-loader',
-                      options: { implementation: require("sass") }
+                        loader: "sass-loader",
+                        options: { implementation: require("sass") }
                     }
-                ],
+                ]
             },
             {
                 test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)(\?.*)?$/,
@@ -155,5 +160,7 @@ module.exports = {
 };
 
 function resolve(filePath) {
-    return path.isAbsolute(filePath) ? filePath : path.join(__dirname, filePath);
+    return path.isAbsolute(filePath)
+        ? filePath
+        : path.join(__dirname, filePath);
 }
