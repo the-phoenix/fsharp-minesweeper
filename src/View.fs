@@ -3,28 +3,39 @@ module Minesweeper.View
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
 open Types
+open GameLogic
 
 let title content = h1 [ ClassName "title"] [str content]
 let subtitle content = h2 [ ClassName "subtitle"] [str content]
 let showIcon label = span [ ClassName "icon"] [ i [ ClassName <| sprintf "fa fa-%s" label] []]
 
 let showGrid titleText presentBox model dispatch = 
+  let cellsTemplate = sprintf "repeat(%i, 1fr)" <| getSize model.map
+
   div 
-    [] 
+    [ ] 
     [
       title titleText
 
       model.map
       |> Array.mapi presentBox
       |> Array.toList
-      |> div [ ClassName "minefield" ]
+      |> div 
+        [ 
+          ClassName "minefield" 
+          Style [
+            GridTemplateColumns cellsTemplate
+            GridTemplateRows cellsTemplate ]
+        ]
 
       button [ OnClick (fun _ -> dispatch ResetGame)] [ str "Reset the game"]
     ]
 
 let showBox isDetonatedMine _ box = 
   match box with 
-  | Mine -> span [ ClassName "minebox"] [ showIcon "bomb" ]
+  | Mine -> 
+    let className = if isDetonatedMine then "minebox detonated" else "minebox"
+    span [ ClassName className] [ showIcon "bomb" ]
   | MineProximity nearbyMines -> span [ClassName (sprintf "minebox colorNumber-%i" nearbyMines)] [ str <| string nearbyMines ]
   | Empty -> span [ ClassName "minebox"] [ ]
 

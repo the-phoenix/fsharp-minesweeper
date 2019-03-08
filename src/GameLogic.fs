@@ -7,7 +7,7 @@ let private random =
     let rand = Random()
     rand.Next
 
-let getCoordinates boxIndex size = boxIndex/size, boxIndex % size
+let getCoordinates size boxIndex = boxIndex/size, boxIndex % size
 let getIndex size (row, col) = row * size + col
 let getSize minefield = minefield |> Array.length |> float |> Math.Sqrt |> int
 
@@ -53,7 +53,7 @@ let generateMineField minesCount size =
                 else MineProximity dangerLevel
     )
 
-let revealEmptyFieldAndNeibours model currentBoxIndex =
+let revealEmptyFieldsAndNeighbours model currentBoxIndex =
     let getNearbySafeBoxes = getNeighboursMineIndexes (getSize model.map) >> Seq.toList
     let rec loop updatedRevealed = function
         | [] -> updatedRevealed
