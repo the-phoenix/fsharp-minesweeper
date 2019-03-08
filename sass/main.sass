@@ -13,3 +13,20 @@ $fa-font-path: "./../node_modules/@fortawesome/fontawesome-free/webfonts/"
 .github
   color: $black !important // Override bulma
   border-color: #202020
+
+.minefield
+  display: grid
+  grid-gap: 5px
+  width: 600px
+  height: 600px
+
+.minebox
+  width: 100%
+  height: 100%
+
+.hot-minebox
+  cursor: pointer
+
+@for $i from 1 through 8
+  .color-number-#{$i}
+    color: darken(#FF0000, (8 - $i) * 10%)

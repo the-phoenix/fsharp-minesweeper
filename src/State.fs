@@ -1,45 +1,37 @@
-module App.State
+module Minesweeper.State
 
 open Elmish
-open Elmish.Browser.Navigation
-open Elmish.Browser.UrlParser
-open Fable.Import.Browser
-open Global
 open Types
+open GameLogic
 
-let pageParser: Parser<Page->Page,Page> =
-    oneOf [
-        map About (s "about")
-        map Counter (s "counter")
-        map Home (s "home")
-    ]
+let init _ = 
+    {   Model.map = generateMineField 10 8
+        revealed = Map.empty<BoxIndex, RevealedState>
+        gameState = Running }, Cmd.none
 
-let urlUpdate (result : Page option) model =
-    match result with
-    | None ->
-        console.error("Error parsing url")
-        model, Navigation.modifyUrl (toHash model.CurrentPage)
-    | Some page ->
-        { model with CurrentPage = page }, []
+let update msg model = 
+    let newModel = 
+        match msg with
+        | ResetGame -> fst <| init ()
+        | Reveal boxIndex ->
+            match model.map.[boxIndex], model.revealed |> Map.tryFind boxIndex with
+            | Mine, _ -> { model with gameState = Lost boxIndex }
+            | _, Some Open -> model
+            | MineProximity _, _ -> { model with revealed = model.revealed |> Map.add boxIndex Open }
+            | Empty, _ -> { model with revealed = revealEmptyFieldAndNeibours model boxIndex }
+        | ToggleFlagMine boxIndex ->
+            match model.revealed |> Map.tryFind boxIndex with
+            | Some Open -> model
+            | Some FlaggedMine -> { model with revealed = model.revealed |> Map.remove boxIndex }
+            | None -> { model with revealed = model.revealed |> Map.add boxIndex FlaggedMine }
+    
+    match model.gameState with
+    | Won -> newModel, Cmd.none
+    | Lost _ -> newModel, Cmd.none
+    | Running -> 
+        let toOpen = newModel.map |> Array.sumBy ( function Mine -> 0 | _ -> 1 )
+        let opened = newModel.revealed |> Seq.sumBy ( fun kvp -> match kvp.Value with Open -> 1 | _ -> 0)
 
-let init result =
-    let (counter, counterCmd) = Counter.State.init()
-    let (home, homeCmd) = Home.State.init()
-    let (model, cmd) =
-        urlUpdate result
-          { CurrentPage = Home
-            Counter = counter
-            Home = home }
-
-    model, Cmd.batch [ cmd
-                       Cmd.map CounterMsg counterCmd
-                       Cmd.map HomeMsg homeCmd ]
-
-let update msg model =
-    match msg with
-    | CounterMsg msg ->
-        let (counter, counterCmd) = Counter.State.update msg model.Counter
-        { model with Counter = counter }, Cmd.map CounterMsg counterCmd
-    | HomeMsg msg ->
-        let (home, homeCmd) = Home.State.update msg model.Home
-        { model with Home = home }, Cmd.map HomeMsg homeCmd
+        if toOpen = opened
+            then { newModel with gameState = Won }, Cmd.none
+            else newModel, Cmd.none
