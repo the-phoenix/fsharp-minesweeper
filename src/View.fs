@@ -53,7 +53,7 @@ let showHotBox dispatch mbRevealedState boxIndex box =
   match mbRevealedState with
   | Some Open -> showBox false boxIndex box
   | Some FlaggedMine -> 
-    [showIcon "question"] |> showRawHotBox dispatch boxIndex
+    [showIcon "flag"] |> showRawHotBox dispatch boxIndex
   | None -> showRawHotBox dispatch boxIndex []
 
 let view model dispatch =
